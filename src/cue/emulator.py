@@ -163,7 +163,7 @@ class Emulator():
             fit_spectra.append(np.hstack(this_spec)[:,wavind_sorted])
             self.cont_nn_spectra = np.squeeze(np.array(fit_spectra))
         #self.cont_nn_spectra = 10**self.cont_nn_spectra/3.839E33/10**self.gas_logq*10**self.log_qion # convert to the unit in FSPS
-	self.cont_nn_spectra = 10**(self.cont_nn_spectra - self.gas_logq + self.log_qion - np.log10(3.839E33))
+        self.cont_nn_spectra = 10**(self.cont_nn_spectra - self.gas_logq + self.log_qion - np.log10(3.839E33))
         self.output_cont_wavelength = self.cont_wavelength[wavind_sorted]
         from scipy.interpolate import CubicSpline
         neb_cont_cs = CubicSpline(self.cont_wavelength, self.cont_nn_spectra, extrapolate=True) # interpolate onto the fsps wavelengths
@@ -188,5 +188,5 @@ class Emulator():
             self.line_nn_spectra = np.squeeze(np.array(fit_spectra))
         self.output_line_wavelength = self.line_wavelength[wavind_sorted]
         #self.line_nn_spectra = 10**self.line_nn_spectra/3.839E33/10**self.gas_logq*10**self.log_qion # convert to the unit in FSPS
-	self.line_nn_spectra = 10**(self.line_nn_spectra - self.gas_logq + self.log_qion - np.log10(3.839E33))
+        self.line_nn_spectra = 10**(self.line_nn_spectra - self.gas_logq + self.log_qion - np.log10(3.839E33))
         return self.line_nn_spectra
