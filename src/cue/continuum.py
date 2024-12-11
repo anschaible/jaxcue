@@ -70,8 +70,8 @@ class predict():
                 self.theta = np.hstack([self.gammas, self.log_L_ratios, self.log_QH, self.n_H, 
                                         self.log_OH_ratio, self.log_NO_ratio, self.log_CO_ratio])
         else:
-            self.theta = np.array(theta)
-            self.n_sample = len(self.theta)
+            self.theta = tf.convert_to_tensor(theta, dtype=tf.float32)
+            self.n_sample = tf.shape(self.theta)[0]
             #self.theta[:,-2:] = 10**self.theta[:,-2:]
         #raise ValueError('NEBULAR PARAMETER ERROR: input {0} parameters but required 12'.format(len(theta[0]))
     
