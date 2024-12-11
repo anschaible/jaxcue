@@ -77,28 +77,23 @@ class predict():
     
     def nn_predict(self):
         # shift and scale
-        wavind_sorted = tf.argsort(self.wavelength)
-        fit_spectra = []
-
+        wavind_sorted = np.argsort(self.wavelength)
+        fit_spectra = list()
         if self.n_segments == 1:
-            log_spectrum = self.nn.log_spectrum_(self.theta)
-            fit_spectra = self.pca_basis.PCA.inverse_transform(log_spectrum) * self.nn.log_spectrum_scale_ + self.nn.log_spectrum_shift_
+            fit_spectra = self.pca_basis.PCA.inverse_transform(self.nn.log_spectrum_(self.theta)) * self.nn.log_spectrum_scale_ + self.nn.log_spectrum_shift_
             if self.n_sample == 1:
-                fit_spectra = tf.squeeze(fit_spectra)[wavind_sorted]
+                fit_spectra = np.squeeze(fit_spectra)[wavind_sorted]
             else:
-                fit_spectra = tf.gather(tf.squeeze(fit_spectra), wavind_sorted, axis=1)
+                fit_spectra = np.squeeze(fit_spectra)[:,wavind_sorted]
             self.nn_spectra = fit_spectra
         else:
-            this_spec = []
+            this_spec = list()
             for j in range(self.n_segments):
-                log_spectrum = self.nn[j].log_spectrum_(self.theta)
-                segment_spectrum = self.pca_basis[j].PCA.inverse_transform(log_spectrum) * self.nn[j].log_spectrum_scale_ + self.nn[j].log_spectrum_shift_
-                this_spec.append(segment_spectrum)
-            fit_spectra.append(tf.gather(tf.concat(this_spec, axis=1), wavind_sorted, axis=1))
-            self.nn_spectra = tf.squeeze(tf.stack(fit_spectra))
-
-        self.wavelength = tf.gather(self.wavelength, wavind_sorted)
-        return self.wavelength, tf.pow(10.0, self.nn_spectra)
+                this_spec.append(self.pca_basis[j].PCA.inverse_transform(self.nn[j].log_spectrum_(self.theta)) * self.nn[j].log_spectrum_scale_ + self.nn[j].log_spectrum_shift_)
+            fit_spectra.append(np.hstack(this_spec)[:,wavind_sorted])
+            self.nn_spectra = np.squeeze(np.array(fit_spectra))
+        self.wavelength = self.wavelength[wavind_sorted]
+        return self.wavelength, 10**self.nn_spectra
 
 
 def get_cont(par):
