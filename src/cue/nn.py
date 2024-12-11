@@ -205,15 +205,24 @@ class Speculator(tf.keras.Model):
     
     # forward prediction of spectrum given input parameters implemented in numpy
     def log_spectrum_(self, parameters):
-        layers = [(parameters - self.parameters_shift_) / self.parameters_scale_]
-        for i in range(self.n_layers - 1):
+        
+        # forward pass through the network
+        act = []
+        layers = [(parameters - self.parameters_shift_)/self.parameters_scale_]
+        for i in range(self.n_layers-1):
+
             # linear network operation
-            act = tf.matmul(layers[-1], self.W_[i]) + self.b_[i]
+            act.append(np.dot(layers[-1], self.W_[i]) + self.b_[i])
 
             # pass through activation function
-            layers.append((self.betas_[i] + (1. - self.betas_[i]) * 1. / (1. + tf.exp(-self.alphas_[i] * act))) * act)
+            layers.append((self.betas_[i] + (1.-self.betas_[i])*1./(1.+np.exp(-self.alphas_[i]*act[-1])))*act[-1])
 
-        return layers[-1]
+        # final (linear) layer -> (normalized) PCA coefficients
+        layers.append(np.dot(layers[-1], self.W_[-1]) + self.b_[-1])
+
+        # rescale PCA coefficients, multiply out PCA basis -> normalized spectrum, shift and re-scale spectrum -> output spectrum
+        return layers[-1]*self.pca_scale_ + self.pca_shift_ #np.dot(layers[-1]*self.pca_scale_ + self.pca_shift_, self.pca_transform_matrix_)*self.log_spectrum_scale_ + self.log_spectrum_shift_
+
     
     ### Infrastructure for network training ###
 
